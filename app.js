@@ -1,8 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
-
+const AppError = require('./utils/appErrors');
 const userRoute = require(`./routes/userRoute`);
 const tourRoute = require(`./routes/tourRoute`);
+const errorControl = require(`./controllers/errorControl`);
 const { static } = require('express');
 
 const app = express();
@@ -14,26 +15,10 @@ app.use(express.static(`${__dirname}/public`));
 ////////////////////////////////Routes///////////////////////////////////////
 app.use('/api/v1/tours', tourRoute);
 app.use(`/api/v1/users`, userRoute);
-app.all(`*`, (req, res) => {
-    // res.status(404).json({
-    //     status: `Not found`,
-    //     message: `There is no defined route for ${req.originalUrl}`
-    // });
-
-    const err = new Error(`There is no defined route for ${req.originalUrl}`);
-    err.statusCode = 404;
-    err.status = `fail`;
-    next(err);
+app.all(`*`, (req, res, next) => {
+    next(new AppError(`There is no defined route for ${req.originalUrl}`, 404));
 })
 
-app.use((err, req, res, next) => {
-    err.statusCode = err.statusCode || 500;
-    err.status = err.status || `Undefined Error`;
-    res.status(err.statusCode).json({
-        status: err.status,
-        message: err.message
-    });
-    next();
-});
+app.use(errorControl);
 
 module.exports = app;
