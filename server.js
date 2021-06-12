@@ -19,5 +19,6 @@ mongoose.connect(db, {
 
 const port = process.env.PORT;
 server.listen(port, () => {
+    console.log(`The app has started in ${process.env.NODE_ENV} mode`);
     console.log(`Listening on ${port}...`);
 });
