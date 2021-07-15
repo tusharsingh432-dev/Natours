@@ -2,6 +2,7 @@ const mongoose = require(`mongoose`);
 const slugify = require(`slugify`);
 const validator = require(`validator`);
 const bcrypt = require(`bcryptjs`);
+const catchAsyncError = require('./../utils/catchAsyncError');
 //const isEmail = require('validator/lib/isEmail');
 
 //////////////////////////////Schema////////////////////////////
@@ -28,7 +29,8 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        minLength: 8
+        minLength: 8,
+        select: false
     },
     passwordConf: {
         type: String,
@@ -52,6 +54,9 @@ userSchema.pre(`save`, async function (next) {
     next();
 });
 
+userSchema.methods.correctPassword = async function(candidate, password) {
+    return await bcrypt.compare(candidate, password);
+}
 
 ///////////////////////////////////////////////////////////////////
 const User = mongoose.model('User', userSchema);
