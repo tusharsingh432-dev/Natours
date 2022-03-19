@@ -15,6 +15,14 @@ const validationErrorHandle = (err) => {
     return new AppError(`Validation Error occoured in [ ${error} ]`, 400);
 }
 
+const jsonWebTokenErrorHandle = (err) => {
+    return new AppError(`Invalid Token, Please login again`, 401);
+}
+
+const tokenExpiredErrorHandle = (err) => {
+    return new AppError(`Login Expired, Please login again`, 401);
+}
+
 const errSendDev = (err, res) => {
     res.status(err.statusCode).json({
         status: err.status,
@@ -63,6 +71,15 @@ module.exports = (err, req, res, next) => {
             console.log(`Vlaidation Error`);
             error = validationErrorHandle(error);
         }
+        if (error.name === "JsonWebTokenError") {
+            console.log(`JsonWebToken Error`);
+            error = jsonWebTokenErrorHandle(error);
+        }
+        if (error.name === "TokenExpiredError") {
+            console.log(`TokenExpired Error`);
+            error = tokenExpiredErrorHandle(error);
+        }
+
         errSendProd(error, res);
     }
     next();
