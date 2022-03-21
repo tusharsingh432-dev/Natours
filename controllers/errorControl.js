@@ -54,7 +54,7 @@ module.exports = (err, req, res, next) => {
     err.status = err.status || `Undefined Error`;
     if (process.env.NODE_ENV === 'development') {
         //console.log(`development`)
-        console.log(err.name);
+        // console.log(err.name);
         errSendDev(err, res);
     } else {
         let error = err;
