@@ -7,7 +7,7 @@ const authControl = require(`./../controllers/authControl`);
 router.route(`/signup`).post(authControl.signup);
 router.route(`/login`).post(authControl.login);
 router.route('/forgotpassword').post(authControl.forgotPassword);
-router.route('/resetpassword').post(authControl.resetPassword);
+router.route('/resetpassword/:token').post(authControl.resetPassword);
 
 router
     .route(`/`)

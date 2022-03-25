@@ -4,7 +4,8 @@ const User = require(`./../models/userModel`);
 const catchAsync = require(`./../utils/catchAsyncError`);
 const AppError = require(`./../utils/appErrors`);
 const catchAsyncError = require('./../utils/catchAsyncError');
-const sendMail = require('./../utils/email')
+const sendMail = require('./../utils/email');
+const crypto = require('crypto');
 
 const createToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -38,9 +39,11 @@ exports.login = catchAsyncError(async (req, res, next) => {
     return next(new AppError('Please enter a valid email address and password', 400));
   }
 
-  const user = await User.findOne({ email }).select(`+password`);
+  const user = await User.findOne({ email }).select('+password');
 
-  if (!user || !user.correctPassword(password, user.password)) {
+  console.log(user.password);
+
+  if (!user || ! await user.correctPassword(password, user.password)) {
     return next(new AppError('Please enter a valid email address and password', 400));
   };
 
@@ -126,8 +129,22 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 })
 
 exports.resetPassword = catchAsyncError(async (req, res, next) => {
-  res.status(500).json({
-    status: "Fail",
-    message: "Path not yet made"
-  })
+  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+  // console.log(hashedToken);
+
+  const curUser = await User.findOne({ passwordResetToken: hashedToken, passwordResetTokenValidity: { $gt: Date.now() } });
+
+  if (!curUser) {
+    return next(new AppError('The token has already expired', 404));
+  }
+  console.log(req.body)
+  curUser.password = req.body.password;
+  curUser.passwordConf = req.body.passwordConf;
+  curUser.passwordResetToken = undefined;
+  curUser.passwordResetTokenValidity = undefined;
+
+  await curUser.save();
+  // console.log(curUser);
+  res.status(200).json({ message: "Success", user: curUser });
 })
