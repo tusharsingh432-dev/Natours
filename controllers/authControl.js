@@ -41,7 +41,7 @@ exports.login = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findOne({ email }).select('+password');
 
-  console.log(user.password);
+  // console.log(user.password);
 
   if (!user || ! await user.correctPassword(password, user.password)) {
     return next(new AppError('Please enter a valid email address and password', 400));
@@ -147,4 +147,19 @@ exports.resetPassword = catchAsyncError(async (req, res, next) => {
   await curUser.save();
   // console.log(curUser);
   res.status(200).json({ message: "Success", user: curUser });
+})
+
+exports.updatePassword = catchAsyncError(async (req, res, next) => {
+  const curUser = req.user;
+
+  const verify = await User.findById(curUser.id).select('+password');
+  
+
+  curUser.password = req.body.password;
+  curUser.passwordConf = req.body.passwordConf;
+  await curUser.save();
+  res.status(200).json({
+    message: 'Success',
+    curUser
+  })
 })
