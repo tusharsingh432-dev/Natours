@@ -13,6 +13,24 @@ const createToken = id => {
   });
 }
 
+const createSendToken = (user, statusCode, res) => {
+  const token = createToken(user._id);
+
+  const cookieOptions = {
+    expires: new Date(Date.now() + (90 * 24 * 60 * 60 * 1000)),
+    httpOnly: true,
+    // secure: true
+  }
+  if (process.env.NODE_ENV == 'production') { cookieOptions.secure = true }
+  res.cookie('jwt', token, cookieOptions);
+
+  res.status(statusCode).json({
+    status: `sucess`,
+    token,
+    user,
+  });
+}
+
 exports.signup = catchAsync(async (req, res, next) => {
   //console.log((new Error()).stack.split("\n")[2].trim().split(" "));
   const newUser = await User.create({
@@ -22,13 +40,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConf: req.body.passwordConf,
   });
 
-  const token = createToken(newUser._id);
-
-  res.status(201).json({
-    status: `sucess`,
-    token,
-    user: newUser,
-  });
+  createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsyncError(async (req, res, next) => {
@@ -47,11 +59,7 @@ exports.login = catchAsyncError(async (req, res, next) => {
     return next(new AppError('Please enter a valid email address and password', 400));
   };
 
-  const token = createToken(user._id);
-  res.status(200).json({
-    status: `Sucess`,
-    token
-  })
+  createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsyncError(async (req, res, next) => {
@@ -146,20 +154,17 @@ exports.resetPassword = catchAsyncError(async (req, res, next) => {
 
   await curUser.save();
   // console.log(curUser);
-  res.status(200).json({ message: "Success", user: curUser });
+  createSendToken(curUser, 200, res);
 })
 
 exports.updatePassword = catchAsyncError(async (req, res, next) => {
   const curUser = req.user;
 
   const verify = await User.findById(curUser.id).select('+password');
-  
+
 
   curUser.password = req.body.password;
   curUser.passwordConf = req.body.passwordConf;
   await curUser.save();
-  res.status(200).json({
-    message: 'Success',
-    curUser
-  })
+  createSendToken(curUser, 200, res);
 })

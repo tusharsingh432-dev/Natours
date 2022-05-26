@@ -10,6 +10,9 @@ router.route('/forgotpassword').post(authControl.forgotPassword);
 router.route('/resetpassword/:token').post(authControl.resetPassword);
 router.route('/updatepassword').post(authControl.protect, authControl.updatePassword);
 
+router.patch('/updateme', authControl.protect, userControl.updateMe);
+router.patch('/deleteme', authControl.protect, userControl.deleteMe);
+
 router
     .route(`/`)
     .get(userControl.getAllUsers)
